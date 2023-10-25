@@ -5,7 +5,7 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import "./config/dotenv.config.js";
 import customersRouter from "./routers/customers.js";
-
+import productsRouter from "./routers/products.js";
 const app = express();
 /*Middleware này sẽ giúp bạn chuyển đổi các dữ liệu truyền lên bằng phương thức POST thành một object JavaScript để sử dụng*/
 app.use(bodyParser.json());
@@ -60,3 +60,4 @@ const connectDB = async () => {
 connectDB(); //call function connectDB()
 
 app.use("/customers", customersRouter);
+app.use("/products", productsRouter);
