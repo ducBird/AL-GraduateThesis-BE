@@ -3,9 +3,20 @@ import cors from "cors";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import path from "path";
 import "./config/dotenv.config.js";
+import categoriesRouter from "./routers/categories.js";
+import subCategoriesRouter from "./routers/subcategories.js";
 import customersRouter from "./routers/customers.js";
+import suppliersRouter from "./routers/suppliers.js";
 import productsRouter from "./routers/products.js";
+import productVariantsRouter from "./routers/product.variants.js";
+import employeesRouter from "./routers/employees.js";
+import uploadRouter from "./routers/upload.js";
+import ordersRouter from "./routers/orders.js";
+import paymentRouter from "./routers/payment.js";
+import paymentPaypalRouter from "./routers/paymentPaypal.js";
+
 const app = express();
 /*Middleware này sẽ giúp bạn chuyển đổi các dữ liệu truyền lên bằng phương thức POST thành một object JavaScript để sử dụng*/
 app.use(bodyParser.json());
@@ -59,5 +70,14 @@ const connectDB = async () => {
 };
 connectDB(); //call function connectDB()
 
+app.use("/categories", categoriesRouter);
+app.use("/sub-categories", subCategoriesRouter);
 app.use("/customers", customersRouter);
+app.use("/suppliers", suppliersRouter);
 app.use("/products", productsRouter);
+app.use("/orders", ordersRouter);
+app.use("/variants-p", productVariantsRouter);
+app.use("/employees", employeesRouter);
+app.use("/upload", uploadRouter);
+app.use("/payment", paymentRouter);
+app.use("/payment-paypal", paymentPaypalRouter);
