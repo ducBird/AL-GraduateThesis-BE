@@ -1,21 +1,21 @@
-import Category from "../models/Category.js";
+import AccumulatedMoney from "../models/AccumulatedMoney.js";
 import moment from "moment";
 
 // GETS
-export const getCategories = (req, res, next) => {
+export const getAccumulatedMoney = (req, res, next) => {
   try {
-    Category.find()
+    AccumulatedMoney.find()
       .sort({ name: 1 })
       .then((result) => {
-        const formattedResult = result.map((category) => {
-          const formattedCreatedAt = moment(category.createdAt).format(
+        const formattedResult = result.map((accumulatedmoney) => {
+          const formattedCreatedAt = moment(accumulatedmoney.createdAt).format(
             "YYYY/MM/DD HH:mm:ss"
           );
-          const formattedUpdatedAt = moment(category.updatedAt).format(
+          const formattedUpdatedAt = moment(accumulatedmoney.updatedAt).format(
             "YYYY/MM/DD HH:mm:ss"
           );
           return {
-            ...category.toObject(),
+            ...accumulatedmoney.toObject(),
             createdAt: formattedCreatedAt,
             updatedAt: formattedUpdatedAt,
           };
@@ -28,14 +28,14 @@ export const getCategories = (req, res, next) => {
 };
 
 // GET BY ID
-export const getByIdCategory = (req, res, next) => {
+export const getByIdAccumulatedMoney = (req, res, next) => {
   if (req.params.id === "search") {
     next();
     return;
   }
   try {
     const { id } = req.params;
-    Category.findById(id).then((result) => {
+    AccumulatedMoney.findById(id).then((result) => {
       const formattedCreatedAt = moment(result.createdAt).format(
         "YYYY/MM/DD HH:mm:ss"
       );
@@ -63,17 +63,19 @@ export const search = (req, res, next) => {
 };
 
 // POST
-export const postCategory = async (req, res, next) => {
+export const postAccumulatedMoney = async (req, res, next) => {
   try {
     const data = req.body;
-    const category = await Category.findOne({
+    const accumulatedmoney = await AccumulatedMoney.findOne({
       name: data.name,
     });
-    if (category) {
-      res.status(406).send({ msg: "Tên danh mục bị trùng!" });
+    if (accumulatedmoney) {
+      res
+        .status(406)
+        .send({ msg: "AccumulatedMoney name has been duplicated!" });
       return;
     }
-    const newItem = new Category(data);
+    const newItem = new AccumulatedMoney(data);
     await newItem.save();
     res.status(201).send(newItem);
   } catch (err) {
@@ -83,11 +85,11 @@ export const postCategory = async (req, res, next) => {
 };
 
 // PATCH BY ID
-export const updateCategory = async (req, res, next) => {
+export const updateAccumulatedMoney = async (req, res, next) => {
   try {
     const { id } = req.params;
     const data = req.body;
-    Category.findByIdAndUpdate(id, data, {
+    AccumulatedMoney.findByIdAndUpdate(id, data, {
       new: true,
     }).then((result) => {
       res.status(200).send(result);
@@ -99,10 +101,10 @@ export const updateCategory = async (req, res, next) => {
 };
 
 // DELETE BY ID
-export const deleteCategory = (req, res, next) => {
+export const deleteAccumulatedMoney = (req, res, next) => {
   try {
     const { id } = req.params;
-    Category.findByIdAndDelete(id).then((result) => {
+    AccumulatedMoney.findByIdAndDelete(id).then((result) => {
       res.send(result);
     });
   } catch (err) {

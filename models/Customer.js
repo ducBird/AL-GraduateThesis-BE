@@ -1,6 +1,31 @@
 import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
+const customerCartSchema = new Schema({
+  product_id: {
+    type: Schema.Types.ObjectId,
+    ref: "products",
+    required: true,
+  },
+  attributes: [{ type: Schema.Types.ObjectId, ref: "product_attributes" }],
+  variants_id: { type: Schema.Types.ObjectId, ref: "product_variants" },
+  quantity: { type: Number, require: false, min: 0 },
+});
+
+customerCartSchema.virtual("product", {
+  ref: "products",
+  localField: "product_id",
+  foreignField: "_id",
+  justOne: true,
+});
+customerCartSchema.virtual("variants", {
+  ref: "product_variants",
+  localField: "variants_id",
+  foreignField: "_id",
+  justOne: true,
+});
+customerCartSchema.set("toJSON", { virtuals: true });
+customerCartSchema.set("toObject", { virtuals: true });
 
 const customerSchema = new Schema(
   {
@@ -37,12 +62,11 @@ const customerSchema = new Schema(
         message: `{VALUE} không phải là email hợp lệ`,
         // message: (props) => `{props.value} is not a valid email!`,
       },
-      unique: [true, "email đã tồn tại"],
     },
     password: {
       type: String,
-      min: [5, "Password must be between 5-30 characters"],
-      max: [30, "Password must be between 5-50 characters"],
+      min: [5, "Mật khẩu phải có độ dài từ 5-30 ký tự"],
+      max: [30, "Mật khẩu phải có độ dài từ 5-30 ký tự"],
     },
     google_id: { type: String },
     facebook_id: { type: String },
@@ -60,6 +84,9 @@ const customerSchema = new Schema(
     account_type: { type: String, default: "email" },
     active: { type: Boolean, default: true },
     is_delete: { type: Boolean, default: false },
+    // điểm tích lũy
+    points: { type: Number, default: 0, required: false },
+    customer_cart: [customerCartSchema],
   },
   { timestamps: true }
 );
