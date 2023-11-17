@@ -9,6 +9,8 @@ import { sendEmail } from "./sendMail.js";
 export const getCustomers = (req, res, next) => {
   try {
     Customer.find()
+      .populate("customer_cart.product")
+      .populate("customer_cart.variants")
       .sort({ lastName: 1 })
       .then((result) => {
         const formattedResult = result.map((customer) => {
@@ -43,23 +45,26 @@ export const getByIdCustomer = (req, res, next) => {
   }
   try {
     const { id } = req.params;
-    Customer.findById(id).then((result) => {
-      const formattedCreatedAt = moment(result.createdAt).format(
-        "YYYY/MM/DD HH:mm:ss"
-      );
-      const formattedUpdatedAt = moment(result.updatedAt).format(
-        "YYYY/MM/DD HH:mm:ss"
-      );
-      const formattedBirthDay = moment(result.birth_day).format(
-        "YYYY/MM/DD HH:mm:ss"
-      );
-      res.status(200).send({
-        ...result.toObject(),
-        birth_day: formattedBirthDay,
-        createdAt: formattedCreatedAt,
-        updatedAt: formattedUpdatedAt,
+    Customer.findById(id)
+      .populate("customer_cart.product")
+      .populate("customer_cart.variants")
+      .then((result) => {
+        const formattedCreatedAt = moment(result.createdAt).format(
+          "YYYY/MM/DD HH:mm:ss"
+        );
+        const formattedUpdatedAt = moment(result.updatedAt).format(
+          "YYYY/MM/DD HH:mm:ss"
+        );
+        const formattedBirthDay = moment(result.birth_day).format(
+          "YYYY/MM/DD HH:mm:ss"
+        );
+        res.status(200).send({
+          ...result.toObject(),
+          birth_day: formattedBirthDay,
+          createdAt: formattedCreatedAt,
+          updatedAt: formattedUpdatedAt,
+        });
       });
-    });
   } catch (error) {
     console.log("error", error);
     res.sendStatus(500);
@@ -115,6 +120,43 @@ export const updateCustomer = (req, res, next) => {
   }
 };
 
+// update customer dựa trên cart
+export const updateCartItemById = async (req, res, next) => {
+  try {
+    const customerId = req.params.customerId;
+    const cartItemId = req.params.cartItemId;
+    const { quantity } = req.body; // Lấy quantity từ body
+
+    const customer = await Customer.findById(customerId);
+
+    if (!customer) {
+      return res.status(404).json({ message: "Không tìm thấy khách hàng" });
+    }
+
+    // Tìm sản phẩm trong giỏ hàng có id trùng với cartItemId
+    const cartItem = customer.customer_cart.find(
+      (item) => item._id.toString() === cartItemId
+    );
+
+    if (!cartItem) {
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy sản phẩm trong giỏ hàng" });
+    }
+
+    // Cập nhật số lượng sản phẩm
+    cartItem.quantity = quantity;
+
+    // Lưu thay đổi vào cơ sở dữ liệu
+    await customer.save();
+
+    res.json({ message: "Cập nhật giỏ hàng thành công", customer });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 // DELETE BY ID
 export const deleteCustomer = (req, res, next) => {
   try {
@@ -130,6 +172,42 @@ export const deleteCustomer = (req, res, next) => {
   }
 };
 
+// DELETE CART ITEM BY ID
+export const deleteCartItemById = async (req, res, next) => {
+  try {
+    const customerId = req.params.customerId;
+    const cartItemId = req.params.cartItemId;
+
+    const customer = await Customer.findById(customerId);
+
+    if (!customer) {
+      return res.status(404).json({ message: "Không tìm thấy khách hàng" });
+    }
+
+    // Tìm sản phẩm trong giỏ hàng có id trùng với cartItemId
+    const cartItemIndex = customer.customer_cart.findIndex(
+      (item) => item._id.toString() === cartItemId
+    );
+
+    if (cartItemIndex === -1) {
+      return res
+        .status(404)
+        .json({ message: "Không tìm thấy sản phẩm trong giỏ hàng" });
+    }
+
+    // Xóa sản phẩm khỏi giỏ hàng
+    customer.customer_cart.splice(cartItemIndex, 1);
+
+    // Lưu thay đổi vào cơ sở dữ liệu
+    await customer.save();
+
+    res.json({ message: "Xóa sản phẩm khỏi giỏ hàng thành công", customer });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 // Register
 export const registerCustomer = async (req, res) => {
   try {
@@ -138,19 +216,16 @@ export const registerCustomer = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
 
     if (!first_name || !last_name || !email || !password)
-      return res.status(400).json({ msg: "Please fill in all fields." });
+      return res.status(400).json({ msg: "Vui lòng điền vào tất cả các mục." });
 
     if (!validateEmail(email))
-      return res.status(400).json({ msg: "Invalid emails." });
+      return res.status(400).json({ msg: "Email không hợp lệ." });
 
     const user = await Customer.findOne({ email });
-    if (user)
-      return res.status(400).json({ msg: "This email already exists." });
+    if (user) return res.status(400).json({ msg: "Email này đã tồn tại." });
 
     if (password.length < 5 || password.length > 50)
-      return res
-        .status(400)
-        .json({ msg: "Password must be between 5 and 50 characters." });
+      return res.status(400).json({ msg: "Mật khẩu phải từ 5 - 50 ký tự" });
 
     const newUser = {
       first_name,
@@ -166,10 +241,10 @@ export const registerCustomer = async (req, res) => {
     ).toString("base64");
 
     const url = `${FRONTLINE_URL}/customers/activate/${activation_token}`;
-    sendEmail(email, url, "Verify your email address");
+    sendEmail(email, url, "Xác minh địa chỉ email của bạn.");
 
     res.status(200).json({
-      msg: "Register Success! Please activate your email to start.",
+      msg: "Đăng ký thành công! Vui lòng kích hoạt email của bạn để bắt đầu.",
       customers: newUser,
     });
   } catch (err) {
@@ -188,8 +263,7 @@ export const activateEmail = async (req, res) => {
     const { first_name, last_name, email, password } = user;
 
     const check = await Customer.findOne({ email });
-    if (check)
-      return res.status(400).json({ msg: "This email already exists." });
+    if (check) return res.status(400).json({ msg: "Email này đã tồn tại." });
     // console.log(user);
 
     const newUser = new Customer({
@@ -201,7 +275,7 @@ export const activateEmail = async (req, res) => {
 
     await newUser.save();
 
-    res.json({ msg: "Account has been activated!" });
+    res.json({ msg: "Tài khoản đã được kích hoạt!" });
   } catch (err) {
     return res.status(500).json({ msg: err.message });
   }
@@ -211,12 +285,10 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await Customer.findOne({ email });
-    if (!user)
-      return res.status(400).json({ msg: "This email does not exist." });
+    if (!user) return res.status(400).json({ msg: "Email này không tồn tại." });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).json({ msg: "Password is incorrect." });
+    if (!isMatch) return res.status(400).json({ msg: "Mật khẩu không đúng." });
     const access_token = createAccessToken({ id: user.id });
     const refresh_token = createRefreshToken({ id: user._id });
     res.cookie("refreshtoken", refresh_token, {
@@ -230,7 +302,7 @@ export const login = async (req, res) => {
     const { password: string, ...others } = user._doc;
     // console.log(refresh_token);
     res.json({
-      msg: "Login success!",
+      msg: "Đăng nhập thành công!",
       user: { ...others },
       access_token,
       refresh_token,
@@ -245,9 +317,10 @@ export const getAccessToken = (req, res) => {
     // const rf_token = req.cookies.refreshtoken;
     const refresh_token = req.body.refresh_token;
     if (!refresh_token)
-      return res.status(400).json({ msg: "Please login now!" });
+      return res.status(400).json({ msg: "Hãy đăng nhập ngay bây giờ!" });
     jwt.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
-      if (err) return res.status(400).json({ msg: "Please login now!" });
+      if (err)
+        return res.status(400).json({ msg: "Hãy đăng nhập ngay bây giờ!" });
       const access_token = createAccessToken({ id: user.id });
       res.json({ access_token });
     });
@@ -259,7 +332,7 @@ export const getAccessToken = (req, res) => {
 export const logout = async (req, res) => {
   try {
     res.clearCookie("refreshtoken");
-    res.json({ msg: "Logged out." });
+    res.json({ msg: "Đã đăng xuất." });
   } catch (err) {
     return res.status(500).json({ msg: err.message });
   }

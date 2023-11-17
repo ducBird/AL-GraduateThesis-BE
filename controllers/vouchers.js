@@ -1,21 +1,29 @@
-import Category from "../models/Category.js";
+import Voucher from "../models/Voucher.js";
 import moment from "moment";
 
 // GETS
-export const getCategories = (req, res, next) => {
+export const getVouchers = (req, res, next) => {
   try {
-    Category.find()
+    Voucher.find()
       .sort({ name: 1 })
       .then((result) => {
-        const formattedResult = result.map((category) => {
-          const formattedCreatedAt = moment(category.createdAt).format(
+        const formattedResult = result.map((voucher) => {
+          const formatedStartDate = moment(voucher.startDate).format(
             "YYYY/MM/DD HH:mm:ss"
           );
-          const formattedUpdatedAt = moment(category.updatedAt).format(
+          const formatedExpirationDate = moment(voucher.expirationDate).format(
+            "YYYY/MM/DD HH:mm:ss"
+          );
+          const formattedCreatedAt = moment(voucher.createdAt).format(
+            "YYYY/MM/DD HH:mm:ss"
+          );
+          const formattedUpdatedAt = moment(voucher.updatedAt).format(
             "YYYY/MM/DD HH:mm:ss"
           );
           return {
-            ...category.toObject(),
+            ...voucher.toObject(),
+            startDate: formatedStartDate,
+            expirationDate: formatedExpirationDate,
             createdAt: formattedCreatedAt,
             updatedAt: formattedUpdatedAt,
           };
@@ -28,14 +36,20 @@ export const getCategories = (req, res, next) => {
 };
 
 // GET BY ID
-export const getByIdCategory = (req, res, next) => {
+export const getByIdVoucher = (req, res, next) => {
   if (req.params.id === "search") {
     next();
     return;
   }
   try {
     const { id } = req.params;
-    Category.findById(id).then((result) => {
+    Voucher.findById(id).then((result) => {
+      const formatedStartDate = moment(voucher.startDate).format(
+        "YYYY/MM/DD HH:mm:ss"
+      );
+      const formatedExpirationDate = moment(voucher.expirationDate).format(
+        "YYYY/MM/DD HH:mm:ss"
+      );
       const formattedCreatedAt = moment(result.createdAt).format(
         "YYYY/MM/DD HH:mm:ss"
       );
@@ -44,6 +58,8 @@ export const getByIdCategory = (req, res, next) => {
       );
       res.status(200).send({
         ...result.toObject(),
+        startDate: formatedStartDate,
+        expirationDate: formatedExpirationDate,
         createdAt: formattedCreatedAt,
         updatedAt: formattedUpdatedAt,
       });
@@ -63,17 +79,17 @@ export const search = (req, res, next) => {
 };
 
 // POST
-export const postCategory = async (req, res, next) => {
+export const postVoucher = async (req, res, next) => {
   try {
     const data = req.body;
-    const category = await Category.findOne({
+    const voucher = await Voucher.findOne({
       name: data.name,
     });
-    if (category) {
-      res.status(406).send({ msg: "Tên danh mục bị trùng!" });
+    if (voucher) {
+      res.status(406).send({ msg: "Tên voucher không được trùng lặp" });
       return;
     }
-    const newItem = new Category(data);
+    const newItem = new Voucher(data);
     await newItem.save();
     res.status(201).send(newItem);
   } catch (err) {
@@ -83,11 +99,11 @@ export const postCategory = async (req, res, next) => {
 };
 
 // PATCH BY ID
-export const updateCategory = async (req, res, next) => {
+export const updateVoucher = async (req, res, next) => {
   try {
     const { id } = req.params;
     const data = req.body;
-    Category.findByIdAndUpdate(id, data, {
+    Voucher.findByIdAndUpdate(id, data, {
       new: true,
     }).then((result) => {
       res.status(200).send(result);
@@ -99,10 +115,10 @@ export const updateCategory = async (req, res, next) => {
 };
 
 // DELETE BY ID
-export const deleteCategory = (req, res, next) => {
+export const deleteVoucher = (req, res, next) => {
   try {
     const { id } = req.params;
-    Category.findByIdAndDelete(id).then((result) => {
+    Voucher.findByIdAndDelete(id).then((result) => {
       res.send(result);
     });
   } catch (err) {
