@@ -18,6 +18,7 @@ import paymentRouter from "./routers/payment.js";
 import paymentPaypalRouter from "./routers/paymentPaypal.js";
 import voucherRouter from "./routers/vouchers.js";
 import accumulatedRouter from "./routers/accumulated.money.js";
+import productReviewRouter from "./routers/product.review.js";
 const app = express();
 /*Middleware này sẽ giúp bạn chuyển đổi các dữ liệu truyền lên bằng phương thức POST thành một object JavaScript để sử dụng*/
 app.use(bodyParser.json());
@@ -84,3 +85,4 @@ app.use("/payment", paymentRouter);
 app.use("/payment-paypal", paymentPaypalRouter);
 app.use("/vouchers", voucherRouter);
 app.use("/accumulateds", accumulatedRouter);
+app.use("/product-review", productReviewRouter);
