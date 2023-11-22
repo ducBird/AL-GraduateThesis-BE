@@ -85,17 +85,28 @@ export const PaymentMOMO = (req, res, next) => {
   };
   //Send the request and get the response
 
-  const request = https.request(options, (res) => {
-    console.log(`Status: ${res.statusCode}`);
-    console.log(`Headers: ${JSON.stringify(res.headers)}`);
-    res.setEncoding("utf8");
-    res.on("data", (body) => {
-      console.log("Body: ");
-      console.log(body);
-      console.log("resultCode: ");
-      console.log(JSON.parse(body).resultCode);
+  const request = https.request(options, (momoRes) => {
+    console.log(`Status: ${momoRes.statusCode}`);
+    console.log(`Headers: ${JSON.stringify(momoRes.headers)}`);
+    momoRes.setEncoding("utf8");
+    let payUrl;
+
+    momoRes.on("data", (body) => {
+      // console.log("Body: ");
+      // console.log(body);
+      payUrl = JSON.parse(body).payUrl;
+      console.log("PayUrl: ");
+      console.log(payUrl);
+
+      // Gửi phản hồi lại cho khách hàng bao gồm cả payUrl
+      res.status(200).json({
+        success: true,
+        message: "Redirect URL obtained",
+        payUrl,
+      });
     });
-    res.on("end", () => {
+
+    momoRes.on("end", () => {
       console.log("No more data in response.");
     });
   });
