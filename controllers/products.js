@@ -1,7 +1,9 @@
 import Product from "../models/Product.js";
 import moment from "moment";
+import ProductReview from "../models/ProductReview.js";
 
 // GETS
+
 export const getProducts = async (req, res, next) => {
   const query = {};
 
@@ -376,7 +378,7 @@ export const deleteAllProduct = (req, res, next) => {
   }
 };
 
-// Tìm kiếm sản phẩm
+// tìm kiếm sản phẩm
 export const searchProducts = async (req, res, next) => {
   try {
     let { name } = req.body;

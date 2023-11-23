@@ -1,5 +1,3 @@
-import { query } from "express";
-import { findDocuments } from "../helpers/MongoDbHelper.js";
 import Order from "../models/Order.js";
 import moment from "moment";
 
@@ -275,9 +273,9 @@ export const orderByStatus = (req, res, next) => {
     let { status, fromDate, toDate } = req.body;
     fromDate = new Date(fromDate);
     toDate = new Date(toDate);
-    console.log("fromDate: ", fromDate);
-    console.log("toDate: ", toDate);
-    console.log("status: ", status);
+    // console.log("fromDate: ", fromDate);
+    // console.log("toDate: ", toDate);
+    // console.log("status: ", status);
     const compareStatus = { $eq: ["$status", status] };
     const compareFromDate = {
       $gte: ["$createdAt", new Date(fromDate.setHours(0, 0, 0, 0))],

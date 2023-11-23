@@ -8,7 +8,6 @@ import "./config/dotenv.config.js";
 import categoriesRouter from "./routers/categories.js";
 import subCategoriesRouter from "./routers/subcategories.js";
 import customersRouter from "./routers/customers.js";
-import suppliersRouter from "./routers/suppliers.js";
 import productsRouter from "./routers/products.js";
 import productVariantsRouter from "./routers/product.variants.js";
 import productAttributesRouter from "./routers/product.attribute.js";
@@ -76,7 +75,6 @@ connectDB(); //call function connectDB()
 app.use("/categories", categoriesRouter);
 app.use("/sub-categories", subCategoriesRouter);
 app.use("/customers", customersRouter);
-app.use("/suppliers", suppliersRouter);
 app.use("/products", productsRouter);
 app.use("/orders", ordersRouter);
 app.use("/variants-p", productVariantsRouter);
