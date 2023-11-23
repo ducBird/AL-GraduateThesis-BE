@@ -41,14 +41,14 @@ export const sendEmail = (to, url, txt) => {
     subject: "Aquatic Land",
     html: `
             <div style="max-width: 700px; margin:auto; border: 10px solid #ddd; padding: 50px 20px; font-size: 110%;">
-            <h2 style="text-align: center; text-transform: uppercase;color: teal;">Welcome to the Aquatic Land.</h2>
-            <p>Congratulations! You're almost set to start using Aquatic Land Shop.
-                Just click the button below to validate your email address.
+            <h2 style="text-align: center; text-transform: uppercase;color: teal;">Chào mừng đến Aquatic Land.</h2>
+            <p>Aquatic Land rất vui được gặp bạn.
+                Để có thể mua hàng và trải nghiệm hết tính năng trên website bạn chỉ cần nhấp vào nút bên dưới để xác thực địa chỉ Email của bạn.
             </p>
             
             <a href=${url} style="background: crimson; text-decoration: none; color: white; padding: 10px 20px; margin: 10px 0; display: inline-block;">${txt}</a>
         
-            <p>If the button doesn't work for any reason, you can also click on the link below:</p>
+            <p>Nếu nút xác thực không hoạt động vì bất kỳ lý do gì, bạn cũng có thể nhấp vào liên kết bên dưới:</p>
         
             <div>${url}</div>
             </div>
