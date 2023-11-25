@@ -43,6 +43,7 @@ export const getOrderId = (req, res, next) => {
       .populate("order_details.product")
       .populate("order_details.variants")
       .populate("customer")
+      .populate("employee")
       .then((result) => {
         const formattedResult = result.map((order) => {
           const formattedCreatedAt = moment(order.createdAt).format(
@@ -153,6 +154,7 @@ export const orderByPaymentInformation = (req, res, next) => {
           {
             path: "order_details.product",
           },
+          { path: "employee" },
         ])
           .then((data) => {
             res.send(data);
@@ -217,6 +219,7 @@ export const orderByPaymentStatus = (req, res, next) => {
           {
             path: "order_details.product",
           },
+          { path: "employee" },
         ])
           .then((data) => {
             res.send(data);
@@ -257,6 +260,7 @@ export const queryOne = (req, res, next) => {
     Order.find(query)
       .populate("order_details.product")
       .populate("customer")
+      .populate("employee")
       .then((result) => {
         res.send(result);
       })
@@ -298,6 +302,7 @@ export const orderByStatus = (req, res, next) => {
           {
             path: "order_details.product",
           },
+          { path: "employee" },
         ])
           .then((data) => {
             res.send(data);
@@ -371,8 +376,6 @@ export const orderByStatus = (req, res, next) => {
 export const orderFromdayToday = (req, res, next) => {
   try {
     let { fromDate, toDate } = req.body;
-    console.log("fromDate", fromDate);
-    console.log("toDate", toDate);
     fromDate = new Date(fromDate);
     fromDate.setUTCHours(0, 0, 0, 0);
     toDate = new Date(toDate);
@@ -393,6 +396,7 @@ export const orderFromdayToday = (req, res, next) => {
           {
             path: "order_details.product",
           },
+          { path: "employee" },
         ])
           .then((data) => {
             res.send(data);
