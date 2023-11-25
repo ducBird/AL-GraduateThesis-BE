@@ -21,7 +21,7 @@ import {
 } from "../middlewares/middlewareauth.js";
 
 const router = express.Router();
-router.get("/", verifyToken, getCustomers);
+router.get("/", getCustomers);
 router.get("/:id", getByIdCustomer);
 router.get("/search", search);
 router.post("/", verifyTokenAdmin, convertDateMiddleware, postCustomer);

@@ -10,7 +10,7 @@ export const PaymentMOMO = (req, res, next) => {
   var redirectUrl = "http://127.0.0.1:3000/component/checkcart/checkout";
   var ipnUrl = "http://127.0.0.1:3000/component/checkcart/checkout";
   var requestType = "payWithMethod";
-  var amount = "50000";
+  var amount = req.body.amount;
   var orderId = partnerCode + new Date().getTime();
   var requestId = orderId;
   var extraData = "";
@@ -110,7 +110,6 @@ export const PaymentMOMO = (req, res, next) => {
       console.log("No more data in response.");
     });
   });
-
   req.on("error", (e) => {
     console.log(`problem with request: ${e.message}`);
   });
