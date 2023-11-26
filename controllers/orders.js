@@ -1,6 +1,8 @@
 import Order from "../models/Order.js";
 import moment from "moment";
-
+import { sendOrderUpdateToCustomer } from "./realtimeNotificationSSE.js";
+import Product from "../models/Product.js";
+import ProductVariant from "../models/ProductVariant.js";
 //Get
 export const getOrder = async (req, res, next) => {
   try {
@@ -73,9 +75,16 @@ export const getOrderId = (req, res, next) => {
 export const postOrder = async (req, res, next) => {
   try {
     const data = req.body;
-    console.log(data);
+    // console.log(data);
     const newItem = new Order(data);
     newItem.save().then((result) => {
+      if (data.status === "WAITING FOR PICKUP") {
+        // xử lý cập nhật số lượng khi đặt hàng thành công
+        updateStock(data?.order_details);
+
+        // Gửi thông báo SSE đến trình duyệt của khách hàng
+        // sendOrderUpdateToCustomer(updatedOrder.customer_id, updatedOrder);
+      }
       res.send(result);
     });
   } catch (err) {
@@ -84,29 +93,76 @@ export const postOrder = async (req, res, next) => {
   }
 };
 
+async function updateStock(orderDetails) {
+  try {
+    for (const orderDetail of orderDetails) {
+      const product = await Product.findById(orderDetail.product_id);
+
+      if (!product) {
+        console.log(`Product with ID ${orderDetail.product_id} not found.`);
+        continue;
+      }
+
+      if (orderDetail.variants_id) {
+        // Nếu có variants và variants_id được cung cấp, cập nhật stock của variant thích hợp
+        const variantId = orderDetail.variants_id;
+        const variantToUpdate = product.variants.find((variant) =>
+          variant._id.equals(variantId)
+        );
+
+        if (variantToUpdate) {
+          // Lấy thông tin của variant từ cơ sở dữ liệu
+          const fullVariant = await ProductVariant.findById(variantId);
+
+          // Cập nhật stock của variant
+          fullVariant.stock -= orderDetail.quantity;
+          await fullVariant.save();
+        } else {
+          console.log(
+            `Variant with ID ${orderDetail.variants_id} not found for product ${product._id}.`
+          );
+          continue;
+        }
+      } else {
+        // Nếu không có variants hoặc không có variants_id, cập nhật trực tiếp stock của sản phẩm
+        product.stock -= orderDetail.quantity;
+      }
+
+      await product.save();
+      // console.log(`Stock updated for product ${product._id}`);
+    }
+  } catch (error) {
+    console.error(`Error updating stock: ${error.message}`);
+  }
+}
 //Patch Id
-export const updateOrder = (req, res, next) => {
+export const updateOrder = async (req, res, next) => {
   try {
     const id = req.params.id;
     const data = req.body;
-    console.log(data.order_details);
-    Order.findByIdAndUpdate(id, data, {
+    // console.log("data", data);
+    // console.log(data.order_details);
+    const updatedOrder = await Order.findByIdAndUpdate(id, data, {
       new: true,
-    }).then((result) => {
+    }).populate("order_details.product");
+    // console.log("updatedOrder", updatedOrder);
+    // Xử lý cập nhật số lượng khi đặt hàng thành công
+    if (data.status === "WAITING FOR PICKUP") {
       // xử lý cập nhật số lượng khi đặt hàng thành công
-      if (data.status === "WAITING FOR PICKUP") {
-      }
-      res.status(200).send(result);
-      return;
-    });
+      updateStock(updatedOrder?.order_details);
+
+      // Gửi thông báo SSE đến trình duyệt của khách hàng
+      // sendOrderUpdateToCustomer(updatedOrder.customer_id, updatedOrder);
+    }
+
+    res.status(200).send(updatedOrder);
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
-    return;
   }
 };
 
-// DELETE BY ID
+// Delete order id
 export const deleteOrder = (req, res, next) => {
   try {
     const { id } = req.params;
