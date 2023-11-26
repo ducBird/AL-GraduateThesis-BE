@@ -20,6 +20,7 @@ import voucherRouter from "./routers/vouchers.js";
 import accumulatedRouter from "./routers/accumulated.money.js";
 import productReviewRouter from "./routers/product.review.js";
 import sseRouter from "./routers/realtimeNotificationSSE.js";
+import voucherNotification from "./routers/notifications.js";
 const app = express();
 /*Middleware này sẽ giúp bạn chuyển đổi các dữ liệu truyền lên bằng phương thức POST thành một object JavaScript để sử dụng*/
 app.use(bodyParser.json());
@@ -88,3 +89,4 @@ app.use("/vouchers", voucherRouter);
 app.use("/accumulateds", accumulatedRouter);
 app.use("/product-review", productReviewRouter);
 app.use("/sse", sseRouter);
+app.use("/notifications", voucherNotification);

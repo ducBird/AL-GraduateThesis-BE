@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 const { Schema, model } = mongoose;
-const orderDetailSchema = new Schema({
+export const orderDetailSchema = new Schema({
   product_id: { type: Schema.Types.ObjectId, ref: "products", required: false },
   variants_id: { type: Schema.Types.ObjectId, ref: "product_variants" },
   quantity: { type: Number, require: false, min: 0 },
