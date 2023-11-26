@@ -3,6 +3,8 @@ import moment from "moment";
 import { sendOrderUpdateToCustomer } from "./realtimeNotificationSSE.js";
 import Product from "../models/Product.js";
 import ProductVariant from "../models/ProductVariant.js";
+import axios from "axios";
+import { axiosClient } from "../libraries/axiosClient.js";
 //Get
 export const getOrder = async (req, res, next) => {
   try {
@@ -81,9 +83,6 @@ export const postOrder = async (req, res, next) => {
       if (data.status === "WAITING FOR PICKUP") {
         // xử lý cập nhật số lượng khi đặt hàng thành công
         updateStock(data?.order_details);
-
-        // Gửi thông báo SSE đến trình duyệt của khách hàng
-        // sendOrderUpdateToCustomer(updatedOrder.customer_id, updatedOrder);
       }
       res.send(result);
     });
@@ -115,8 +114,13 @@ async function updateStock(orderDetails) {
           const fullVariant = await ProductVariant.findById(variantId);
 
           // Cập nhật stock của variant
-          fullVariant.stock -= orderDetail.quantity;
-          await fullVariant.save();
+          // Kiểm tra nếu stock còn > 0 trước khi cập nhật
+          if (fullVariant.stock > 0) {
+            fullVariant.stock -= orderDetail.quantity;
+            await fullVariant.save();
+          } else {
+            console.log(`Stock is already 0 for variant ${variantId}.`);
+          }
         } else {
           console.log(
             `Variant with ID ${orderDetail.variants_id} not found for product ${product._id}.`
@@ -125,7 +129,13 @@ async function updateStock(orderDetails) {
         }
       } else {
         // Nếu không có variants hoặc không có variants_id, cập nhật trực tiếp stock của sản phẩm
-        product.stock -= orderDetail.quantity;
+        // Kiểm tra nếu stock còn > 0 trước khi cập nhật
+        if (product.stock > 0) {
+          product.stock -= orderDetail.quantity;
+          await product.save();
+        } else {
+          console.log(`Stock is already 0 for product ${product._id}.`);
+        }
       }
 
       await product.save();
@@ -147,12 +157,18 @@ export const updateOrder = async (req, res, next) => {
     }).populate("order_details.product");
     // console.log("updatedOrder", updatedOrder);
     // Xử lý cập nhật số lượng khi đặt hàng thành công
-    if (data.status === "WAITING FOR PICKUP") {
+    if (
+      data.status === "WAITING FOR PICKUP" ||
+      data.status === "DELIVERED" ||
+      data.status === "CANCELLED"
+    ) {
       // xử lý cập nhật số lượng khi đặt hàng thành công
-      updateStock(updatedOrder?.order_details);
+      if (data.status === "WAITING FOR PICKUP") {
+        updateStock(updatedOrder?.order_details);
+      }
 
       // Gửi thông báo SSE đến trình duyệt của khách hàng
-      // sendOrderUpdateToCustomer(updatedOrder.customer_id, updatedOrder);
+      sendOrderUpdateToCustomer(updatedOrder.customer_id, updatedOrder);
     }
 
     res.status(200).send(updatedOrder);
