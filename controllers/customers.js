@@ -329,6 +329,73 @@ export const getAccessToken = (req, res) => {
   }
 };
 
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await Customer.findOne({ email });
+    if (!user) return res.status(400).json({ msg: "Email không tồn tại!" });
+    // decode activate_token vì có dấu chấm khi gửi về client sẽ không nhận diện được đường dẫn
+    const access_token = Buffer.from(
+      createAccessToken({ id: user._id })
+    ).toString("base64");
+    const url = `${FRONTLINE_URL}/customers/reset/${access_token}`;
+
+    sendEmail(email, url, "Đặt lại mật khẩu của bạn");
+    res.json({
+      msg: "Đã gửi yêu cầu đổi mật khẩu, Vui lòng xem tin nhắn trong email!",
+    });
+  } catch (err) {
+    return res.status(500).json({ msg: err.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    await Customer.findOneAndUpdate(
+      { _id: req.user.id },
+      {
+        password: passwordHash,
+      }
+    );
+
+    res.json({ msg: "Đổi mật khẩu thành công!" });
+  } catch (err) {
+    return res.status(500).json({ msg: err.message });
+  }
+};
+
+export const changePassword = async (req, res) => {
+  try {
+    const { password, newPassword } = req.body;
+    const id = req.params.id;
+
+    const user = await Customer.findOne({ _id: id });
+    if (!user) return res.status(400).json({ msg: "Tài khoản không đúng." });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(400).json({ msg: "Mật khẩu cũ không chính xác!" });
+
+    const salt = await bcrypt.genSalt(10);
+    const newPasswordHash = await bcrypt.hash(newPassword, salt);
+    await Customer.findOneAndUpdate(
+      { _id: id },
+      {
+        password: newPasswordHash,
+      }
+    );
+    res.json({
+      msg: "Mật khẩu được đổi thành công!",
+    });
+  } catch (err) {
+    return res.status(500).json({ msg: err.message });
+  }
+};
+
 export const logout = async (req, res) => {
   try {
     res.clearCookie("refreshtoken");

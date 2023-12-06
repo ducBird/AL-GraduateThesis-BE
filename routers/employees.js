@@ -19,7 +19,7 @@ const router = express.Router();
 router.get("/", verifyToken, getEmployees);
 router.get("/:id", getByIdEmployee);
 router.get("/search", search);
-router.post("/", verifyTokenAdmin, convertDateMiddleware, postEmployee);
+router.post("/", convertDateMiddleware, postEmployee);
 router.patch("/:id", verifyTokenAdmin, convertDateMiddleware, updateEmployee);
 router.delete("/:id", verifyTokenAdmin, deleteEmployee);
 router.post("/login", login);

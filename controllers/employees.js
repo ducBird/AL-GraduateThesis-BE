@@ -74,30 +74,42 @@ export const search = (req, res, next) => {
 // POST
 export const postEmployee = async (req, res, next) => {
   try {
-    const { first_name, last_name, email, password } = req.body;
+    const {
+      first_name,
+      last_name,
+      email,
+      password,
+      phone_number,
+      address,
+      birth_day,
+      roles,
+    } = req.body;
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
     if (!first_name || !last_name || !email || !password)
-      return res.status(400).json({ msg: "Please fill in all fields." });
-
-    if (!validateEmail(email))
-      return res.status(400).json({ msg: "Invalid emails." });
-
-    const user = await Employee.findOne({ email });
-    if (user)
-      return res.status(400).json({ msg: "This email already exists." });
-
-    if (password.length < 5 || password.length > 50)
       return res
         .status(400)
-        .json({ msg: "Password must be between 5 and 50 characters." });
+        .json({ msg: "Hãy điền vào các trường bắt buộc nhập." });
+
+    if (!validateEmail(email))
+      return res.status(400).json({ msg: "Email không hợp lệ." });
+
+    const user = await Employee.findOne({ email });
+    if (user) return res.status(400).json({ msg: "Email đã tồn tại." });
+
+    if (password.length < 5 || password.length > 50)
+      return res.status(400).json({ msg: "Mật khẩu không hợp lệ." });
 
     const newUser = new Employee({
       first_name,
       last_name,
       email,
       password: passwordHash,
+      phone_number,
+      address,
+      birth_day,
+      roles,
     });
     newUser.save().then((result) => {
       res.send(result);
@@ -110,11 +122,23 @@ export const postEmployee = async (req, res, next) => {
 };
 
 // PATCH BY ID
-export const updateEmployee = (req, res, next) => {
+export const updateEmployee = async (req, res, next) => {
   try {
     const id = req.params.id;
     const data = req.body;
-    Employee.findByIdAndUpdate(id, data, {
+    const { password } = req.body;
+
+    // Nếu có mật khẩu mới, hash lại và cập nhật
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+
+      // Cập nhật mật khẩu trong DB
+      // await Employee.findByIdAndUpdate(id, { password: passwordHash });
+      data.password = passwordHash;
+    }
+
+    await Employee.findByIdAndUpdate(id, data, {
       new: true,
     }).then((result) => {
       res.status(200).send(result);

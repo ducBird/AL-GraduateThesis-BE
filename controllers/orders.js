@@ -3,8 +3,8 @@ import moment from "moment";
 import { sendOrderUpdateToCustomer } from "./realtimeNotificationSSE.js";
 import Product from "../models/Product.js";
 import ProductVariant from "../models/ProductVariant.js";
-import axios from "axios";
-import { axiosClient } from "../libraries/axiosClient.js";
+// import axios from "axios";
+// import { axiosClient } from "../libraries/axiosClient.js";
 //Get
 export const getOrder = async (req, res, next) => {
   try {

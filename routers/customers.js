@@ -13,6 +13,9 @@ import {
   search,
   updateCartItemById,
   updateCustomer,
+  forgotPassword,
+  resetPassword,
+  changePassword,
 } from "../controllers/customers.js";
 import { convertDateMiddleware } from "../middlewares/convertDate.js";
 import {
@@ -45,6 +48,9 @@ router.post("/register", registerCustomer);
 router.post("/activation", activateEmail);
 router.post("/login", login);
 router.post("/refresh-token", getAccessToken);
+router.post("/forgot", forgotPassword);
+router.post("/reset", verifyToken, resetPassword);
+router.patch("/change/:id", verifyToken, changePassword);
 router.get("/logout", logout);
 
 export default router;
