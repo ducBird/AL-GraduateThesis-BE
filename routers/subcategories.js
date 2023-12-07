@@ -18,8 +18,8 @@ router.get("/", getSubCategories);
 router.get("/:category_id", getSubCategoriesByIdCategory);
 router.get("/:category_id/:id", getByIdSubCategory);
 router.get("/search", search);
-router.post("/", verifyTokenAdmin, postSubCategory);
-router.patch("/:id", verifyToken, updateSubCategory);
-router.delete("/:id", verifyTokenAdmin, deleteSubCategory);
+router.post("/", postSubCategory);
+router.patch("/:id", updateSubCategory);
+router.delete("/:id", deleteSubCategory);
 
 export default router;
