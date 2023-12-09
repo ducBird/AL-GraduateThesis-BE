@@ -396,9 +396,28 @@ export const changePassword = async (req, res) => {
   }
 };
 
+export const loginGoogleSuccess = (req, res) => {
+  if (req.user) {
+    res.status(200).json({
+      success: true,
+      message: "Login successfull",
+      user: req.user,
+      cookie: req.cookies,
+    });
+  }
+};
+
+export const loginGoogleFailure = (req, res) => {
+  res.status(401).json({
+    success: false,
+    message: "Login failure",
+  });
+};
+
 export const logout = async (req, res) => {
   try {
     res.clearCookie("refreshtoken");
+    res.clearCookie("session_google_account");
     res.json({ msg: "Đã đăng xuất." });
   } catch (err) {
     return res.status(500).json({ msg: err.message });

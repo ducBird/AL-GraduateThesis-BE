@@ -16,12 +16,16 @@ import {
   forgotPassword,
   resetPassword,
   changePassword,
+  loginGoogleFailure,
+  loginGoogleSuccess,
 } from "../controllers/customers.js";
 import { convertDateMiddleware } from "../middlewares/convertDate.js";
 import {
   verifyToken,
   verifyTokenAdmin,
 } from "../middlewares/middlewareauth.js";
+import passport from "passport";
+import { FRONTLINE_URL } from "../constants/URLS.js";
 
 const router = express.Router();
 router.get("/", getCustomers);
@@ -52,5 +56,20 @@ router.post("/forgot", forgotPassword);
 router.post("/reset", verifyToken, resetPassword);
 router.patch("/change/:id", verifyToken, changePassword);
 router.get("/logout", logout);
+router.get(
+  "/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    // successRedirect: `${FRONTLINE_URL}/history-order-user`,
+    successRedirect: FRONTLINE_URL,
+    failureRedirect: "/login/failed",
+  })
+);
+//google auth
+router.get("/login/failed", loginGoogleFailure);
+router.get("/login/success", loginGoogleSuccess);
 
 export default router;
