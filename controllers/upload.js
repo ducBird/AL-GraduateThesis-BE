@@ -4,6 +4,7 @@ import Category from "../models/Category.js";
 import Employee from "../models/Employee.js";
 import ProductVariant from "../models/ProductVariant.js";
 import cloudinary from "cloudinary";
+import Customer from "../models/Customer.js";
 
 export const uploadImage = async (req, res, next) => {
   try {
@@ -18,6 +19,19 @@ export const uploadImage = async (req, res, next) => {
       Category.findByIdAndUpdate(
         id,
         { image_url: req.file.path },
+        {
+          new: true,
+        }
+      ).then((result) => {
+        // res.status(200).send(result); chỉ dùng để test api
+        // res.json({ secure_url: req.file.path, msg: "Upload image sucess" }); chỉ dùng để test api
+        return;
+      });
+    }
+    if (collectionName === "customers") {
+      Customer.findByIdAndUpdate(
+        id,
+        { avatar: req.file.path },
         {
           new: true,
         }
@@ -66,7 +80,7 @@ export const uploadImage = async (req, res, next) => {
         return;
       });
     } else {
-      res.json({ msg: "CollectionName UnKnown" });
+      res.json({ msg: "CollectionName UnKnown", url: req.file.path });
     }
   } catch (err) {
     return res.status(500).json({ msg: err.message });

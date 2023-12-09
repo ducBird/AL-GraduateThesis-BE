@@ -3,8 +3,12 @@ import cors from "cors";
 import mongoose from "mongoose";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import cookieSession from "cookie-session";
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import path from "path";
 import "./config/dotenv.config.js";
+import Customer from "./models/Customer.js";
 import categoriesRouter from "./routers/categories.js";
 import subCategoriesRouter from "./routers/subcategories.js";
 import customersRouter from "./routers/customers.js";
@@ -29,6 +33,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 /* app.use(express.json());
 // app.use(express.urlencoded({ extended: false }));*/
 app.use(cookieParser());
+
+//use cookie-session
+app.use(
+  cookieSession({
+    name: "session_google_account",
+    keys: ["lama"],
+    maxAge: 24 * 60 * 60 * 100,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(
   cors({
     // origin: "*",
@@ -52,6 +67,47 @@ app.use(
     preflightContinue: false,
   })
 );
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.MAILING_SERVICE_CLIENT_ID,
+      clientSecret: process.env.MAILING_SERVICE_CLIENT_SECRET,
+      callbackURL: "/customers/auth/google/callback",
+    },
+    async function (accessToken, refreshToken, profile, done) {
+      console.log("access token ", accessToken);
+      console.log("refresh token ", refreshToken);
+      console.log("profile", profile);
+
+      //check whether this current user exists in our database
+      const user = await Customer.findOne({
+        google_id: profile.id,
+        account_type: "google",
+      });
+      if (user) return done(null, user);
+      //else create a new user
+      const googleAccount = {
+        first_name: profile.name.familyName,
+        last_name: profile.name.givenName,
+        email: profile.emails[0].value,
+        google_id: profile.id,
+        avatar: profile.photos[0].value,
+        account_type: profile.provider,
+      };
+      const accountCustomer = new Customer(googleAccount);
+      accountCustomer.save().then((user) => done(null, user));
+    }
+  )
+);
+// use cookie-session
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
 app.use((_req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "*");
