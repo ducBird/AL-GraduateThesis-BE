@@ -54,7 +54,7 @@ app.use(
       "http://127.0.0.1:5173",
       "https://sandbox.vnpayment.vn",
       "https://www.google.com",
-      "*",
+      // "*",
     ],
     methods: "GET,POST,PATCH,DELETE,PUT,OPTIONS",
     credentials: true,
@@ -76,27 +76,38 @@ passport.use(
       callbackURL: "/customers/auth/google/callback",
     },
     async function (accessToken, refreshToken, profile, done) {
-      console.log("access token ", accessToken);
-      console.log("refresh token ", refreshToken);
-      console.log("profile", profile);
+      // console.log("access token ", accessToken);
+      // console.log("refresh token ", refreshToken);
+      // console.log("profile", profile);
 
+      // const uniqueEmail = profile.emails[0].value
       //check whether this current user exists in our database
       const user = await Customer.findOne({
         google_id: profile.id,
         account_type: "google",
       });
-      if (user) return done(null, user);
-      //else create a new user
-      const googleAccount = {
-        first_name: profile.name.familyName,
-        last_name: profile.name.givenName,
+      const checkUniqueEmail = await Customer.findOne({
         email: profile.emails[0].value,
-        google_id: profile.id,
-        avatar: profile.photos[0].value,
-        account_type: profile.provider,
-      };
-      const accountCustomer = new Customer(googleAccount);
-      accountCustomer.save().then((user) => done(null, user));
+      });
+      if (user) {
+        return done(null, { user, accessToken });
+      } else if (checkUniqueEmail) {
+        return done(null, { unique: true });
+      } else {
+        //else create a new user
+        const googleAccount = {
+          first_name: profile.name.familyName,
+          last_name: profile.name.givenName,
+          email: profile.emails[0].value,
+          google_id: profile.id,
+          avatar: profile.photos[0].value,
+          account_type: profile.provider,
+        };
+        const accountCustomer = new Customer(googleAccount);
+        accountCustomer
+          .save()
+          .then((user) => done(null, { user, accessToken }));
+      }
     }
   )
 );

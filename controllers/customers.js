@@ -397,11 +397,23 @@ export const changePassword = async (req, res) => {
 };
 
 export const loginGoogleSuccess = (req, res) => {
-  if (req.user) {
-    res.status(200).json({
+  // nếu client báo lỗi: Access to XMLHttpRequest at 'http://localhost:9000/customers/login/success' from origin 'http://localhost:3000' has been blocked by CORS policy: The value of the 'Access-Control-Allow-Origin' header in the response must not be the wildcard '*' when the request's credentials mode is 'include'. The credentials mode of requests initiated by the XMLHttpRequest is controlled by the withCredentials attribute.
+  // thì dùng 2 dòng header bên dưới
+  res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+  res.header("Access-Control-Allow-Credentials", true);
+
+  if (req.user.unique === true) {
+    res.status(404).send({
+      unique: true,
+      msg: "Email đã tồn tại, có thể bạn đã quên mật khẩu!",
+    });
+    return;
+  } else if (req.user) {
+    res.status(200).send({
       success: true,
-      message: "Login successfull",
-      user: req.user,
+      message: "Đăng nhập thành công",
+      user: req.user.user,
+      access_token: req.user.accessToken,
       cookie: req.cookies,
     });
   }
@@ -410,15 +422,29 @@ export const loginGoogleSuccess = (req, res) => {
 export const loginGoogleFailure = (req, res) => {
   res.status(401).json({
     success: false,
-    message: "Login failure",
+    message: "Đăng nhập thất bại",
   });
 };
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("refreshtoken");
-    res.clearCookie("session_google_account");
-    res.json({ msg: "Đã đăng xuất." });
+    // res.header("Access-Control-Allow-Origin", "http://localhost:3000");
+    // res.header("Access-Control-Allow-Credentials", true);
+    // cần phải đặt tham số path và domain khi gọi hàm res.clearCookie để xóa cookie trên cả client và server. Bạn cũng cần phải bao gồm credentials ở phía frontend, nếu không thì không có cookie nào được gửi với yêu cầu. Nếu không có cookie nào đến server, nó sẽ không có gì để xóa.
+    // với code còn đang development ở local thì không cần có tham số truyền vào là domain
+    res.clearCookie("refreshtoken", {
+      path: "/",
+      domain: "localhost",
+    });
+    res.clearCookie("session_google_account", {
+      path: "/",
+      domain: "localhost",
+      httpOnly: true,
+    });
+    // res.clearCookie("refreshtoken");
+    // res.clearCookie("session_google_account");
+    // res.json({ msg: "Đã đăng xuất." });
+    res.redirect("http://localhost:3000");
   } catch (err) {
     return res.status(500).json({ msg: err.message });
   }

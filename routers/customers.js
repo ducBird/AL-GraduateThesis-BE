@@ -63,8 +63,8 @@ router.get(
 router.get(
   "/auth/google/callback",
   passport.authenticate("google", {
-    // successRedirect: `${FRONTLINE_URL}/history-order-user`,
-    successRedirect: FRONTLINE_URL,
+    successRedirect: `${FRONTLINE_URL}/user-profile`,
+    // successRedirect: FRONTLINE_URL,
     failureRedirect: "/login/failed",
   })
 );
