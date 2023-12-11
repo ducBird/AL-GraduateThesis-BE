@@ -103,11 +103,22 @@ export const postCustomer = async (req, res, next) => {
 };
 
 // PATCH BY ID
-export const updateCustomer = (req, res, next) => {
+export const updateCustomer = async (req, res, next) => {
   try {
     const id = req.params.id;
     const data = req.body;
-    Customer.findByIdAndUpdate(id, data, {
+    const { password } = req.body;
+    // Nếu có mật khẩu mới, hash lại và cập nhật
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+
+      // Cập nhật mật khẩu trong DB
+      // await Customer.findByIdAndUpdate(id, { password: passwordHash });
+      data.password = passwordHash;
+    }
+
+    await Customer.findByIdAndUpdate(id, data, {
       new: true,
     }).then((result) => {
       res.status(200).send(result);

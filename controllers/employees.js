@@ -170,12 +170,11 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await Employee.findOne({ email });
-    if (!user)
-      return res.status(400).json({ msg: "This email does not exist." });
+    if (!user) return res.status(400).json({ msg: "Email không tồn tại!" });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch)
-      return res.status(400).json({ msg: "Password is incorrect." });
+      return res.status(400).json({ msg: "Mật khẩu không chính xác!" });
     const access_token = createAccessToken({ id: user.id, roles: user.roles });
     const refresh_token = createRefreshToken({
       id: user._id,
@@ -192,7 +191,7 @@ export const login = async (req, res) => {
     const { password: string, ...others } = user._doc;
     // console.log(refresh_token);
     res.json({
-      msg: "Login success!",
+      msg: "Đăng nhập thành công!",
       user: { ...others },
       access_token,
       refresh_token,
