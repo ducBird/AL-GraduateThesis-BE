@@ -172,11 +172,70 @@ export const deleteCustomer = (req, res, next) => {
   }
 };
 
+// delete customer_cart
+export const deleteCustomerCart = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const updatedCustomer = await Customer.findByIdAndUpdate(
+      id,
+      { $set: { customer_cart: [] } },
+      { new: true }
+    );
+
+    if (!updatedCustomer) {
+      return res.status(404).send("Customer not found");
+    }
+    res.send(updatedCustomer);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+};
 // DELETE CART ITEM BY ID
+// export const deleteCartItemById = async (req, res, next) => {
+//   try {
+//     const customerId = req.params.customerId;
+//     const productId = req.params.productId;
+//     const variantId = req.params.variantId;
+
+//     const customer = await Customer.findById(customerId);
+
+//     if (!customer) {
+//       return res.status(404).json({ message: "Không tìm thấy khách hàng" });
+//     }
+
+//     // Tìm sản phẩm trong giỏ hàng có id trùng với cartItemId
+//     const cartItemIndex = customer.customer_cart.findIndex(
+//       (item) =>
+//         item.product_id.toString() === productId &&
+//         item.variants_id.toString() === variantId
+//     );
+
+//     if (cartItemIndex === -1) {
+//       return res
+//         .status(404)
+//         .json({ message: "Không tìm thấy sản phẩm trong giỏ hàng" });
+//     }
+
+//     // Xóa sản phẩm khỏi giỏ hàng
+//     customer.customer_cart.splice(cartItemIndex, 1);
+
+//     // Lưu thay đổi vào cơ sở dữ liệu
+//     await customer.save();
+
+//     res.json({ message: "Xóa sản phẩm khỏi giỏ hàng thành công", customer });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Lỗi server" });
+//   }
+// };
+
 export const deleteCartItemById = async (req, res, next) => {
   try {
     const customerId = req.params.customerId;
-    const cartItemId = req.params.cartItemId;
+    const productId = req.params.productId;
+    const variantId = req.params.variantId;
 
     const customer = await Customer.findById(customerId);
 
@@ -184,24 +243,39 @@ export const deleteCartItemById = async (req, res, next) => {
       return res.status(404).json({ message: "Không tìm thấy khách hàng" });
     }
 
-    // Tìm sản phẩm trong giỏ hàng có id trùng với cartItemId
-    const cartItemIndex = customer.customer_cart.findIndex(
-      (item) => item._id.toString() === cartItemId
+    // Tìm tất cả các sản phẩm trong giỏ hàng có cùng product_id và variants_id
+    const matchingItems = customer.customer_cart.filter(
+      (item) =>
+        item.product_id.toString() === productId &&
+        item.variants_id.toString() === variantId
     );
 
-    if (cartItemIndex === -1) {
+    if (matchingItems.length === 0) {
       return res
         .status(404)
         .json({ message: "Không tìm thấy sản phẩm trong giỏ hàng" });
     }
 
-    // Xóa sản phẩm khỏi giỏ hàng
-    customer.customer_cart.splice(cartItemIndex, 1);
+    // Xóa tất cả các sản phẩm khỏi giỏ hàng
+    matchingItems.forEach((matchingItem) => {
+      const cartItemIndex = customer.customer_cart.findIndex(
+        (item) =>
+          item.product_id.toString() === matchingItem.product_id.toString() &&
+          item.variants_id.toString() === matchingItem.variants_id.toString()
+      );
+
+      if (cartItemIndex !== -1) {
+        customer.customer_cart.splice(cartItemIndex, 1);
+      }
+    });
 
     // Lưu thay đổi vào cơ sở dữ liệu
     await customer.save();
 
-    res.json({ message: "Xóa sản phẩm khỏi giỏ hàng thành công", customer });
+    res.json({
+      message: "Xóa tất cả sản phẩm có product_id và variants_id thành công",
+      customer,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Lỗi server" });

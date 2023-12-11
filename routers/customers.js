@@ -18,6 +18,7 @@ import {
   changePassword,
   loginGoogleFailure,
   loginGoogleSuccess,
+  deleteCustomerCart,
 } from "../controllers/customers.js";
 import { convertDateMiddleware } from "../middlewares/convertDate.js";
 import {
@@ -42,9 +43,12 @@ router.patch(
 );
 
 router.delete("/:id", verifyTokenAdmin, deleteCustomer);
+
+router.delete("/delete-customer-cart/:id", deleteCustomerCart);
+
 // Xóa sản phẩm trong giỏ hàng
 router.delete(
-  "/:customerId/cart/:cartItemId",
+  "/:customerId/cart/:productId/:variantId",
   convertDateMiddleware,
   deleteCartItemById
 );
