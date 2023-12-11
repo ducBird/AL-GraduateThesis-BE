@@ -93,6 +93,25 @@ export const updateNotification = async (req, res, next) => {
   }
 };
 
+// patch all
+export const updateAllNotification = async (req, res, next) => {
+  try {
+    const data = req.body;
+
+    // Truy vấn không có điều kiện để cập nhật tất cả các thông báo
+    const result = await Notification.updateMany(
+      {},
+      { isRead: true },
+      { new: true }
+    );
+
+    res.status(200).send(result);
+  } catch (error) {
+    console.error(error);
+    res.sendStatus(500);
+  }
+};
+
 // DELETE BY ID
 export const deleteNotification = (req, res, next) => {
   try {

@@ -9,7 +9,6 @@ export const getSSE = (req, res, next) => {
   res.setHeader("Connection", "keep-alive");
 
   const { customer_id } = req.params;
-  console.log("customer_id", customer_id);
 
   const eventHandler = (data) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);

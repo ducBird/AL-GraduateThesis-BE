@@ -5,6 +5,7 @@ import {
   getNotifications,
   postNotification,
   search,
+  updateAllNotification,
   updateNotification,
 } from "../controllers/notifications.js";
 
@@ -16,6 +17,7 @@ router.get("/search", search);
 router.post("/", postNotification);
 // router.patch("/:id", verifyToken, updateCategory);
 router.patch("/:id", updateNotification);
+router.patch("/", updateAllNotification);
 // router.delete("/:id", verifyTokenAdmin, deleteCategory);
 router.delete("/:id", deleteNotification);
 

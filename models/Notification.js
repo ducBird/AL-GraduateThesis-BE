@@ -24,6 +24,10 @@ const NotificationSchema = new Schema(
       required: true,
     },
     order_details: [orderDetailSchema],
+    isRead: {
+      type: Boolean,
+      default: false, // Mặc định là chưa đọc
+    },
   },
   { timestamps: true } /* tự động tạo 2 field createdAt - updatedAt */
 );

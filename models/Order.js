@@ -113,6 +113,10 @@ const orderSchema = new Schema(
       type: Number,
       required: false,
     },
+    cancel_reason: {
+      type: String,
+      required: false,
+    },
   },
   { timestamps: true } /* tự động tạo 2 field createdAt - updatedAt */
 );
