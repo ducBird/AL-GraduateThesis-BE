@@ -7,6 +7,11 @@ const AccumulatedMoneySchema = new Schema(
     name: { type: String, required: [true, "Bắt buộc nhập"] },
     // phần trăm để tích lũy tiền
     percent: { type: Number, required: [true, "Bắt buộc nhập"] },
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
   },
   /* tự động tạo 2 field createdAt - updatedAt */
   { timestamps: true }

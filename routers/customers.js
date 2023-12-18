@@ -47,8 +47,14 @@ router.delete("/:id", verifyTokenAdmin, deleteCustomer);
 router.delete("/delete-customer-cart/:id", deleteCustomerCart);
 
 // Xóa sản phẩm trong giỏ hàng
+
 router.delete(
   "/:customerId/cart/:productId/:variantId",
+  convertDateMiddleware,
+  deleteCartItemById
+);
+router.delete(
+  "/:customerId/cart/:productId",
   convertDateMiddleware,
   deleteCartItemById
 );

@@ -244,11 +244,13 @@ export const deleteCartItemById = async (req, res, next) => {
     }
 
     // Tìm tất cả các sản phẩm trong giỏ hàng có cùng product_id và variants_id
-    const matchingItems = customer.customer_cart.filter(
-      (item) =>
-        item.product_id.toString() === productId &&
-        item.variants_id.toString() === variantId
-    );
+    const matchingItems = customer.customer_cart.filter((item) => {
+      const productMatch = item?.product_id?.toString() === productId;
+      const variantMatch =
+        !variantId ||
+        (item?.variants_id && item?.variants_id.toString() === variantId);
+      return productMatch && variantMatch;
+    });
 
     if (matchingItems.length === 0) {
       return res
@@ -257,12 +259,29 @@ export const deleteCartItemById = async (req, res, next) => {
     }
 
     // Xóa tất cả các sản phẩm khỏi giỏ hàng
+    // matchingItems.forEach((matchingItem) => {
+    //   const cartItemIndex = customer.customer_cart.findIndex(
+    //     (item) =>
+    //       item.product_id.toString() === matchingItem.product_id.toString() &&
+    //       item.variants_id.toString() === matchingItem.variants_id.toString()
+    //   );
+
+    //   if (cartItemIndex !== -1) {
+    //     customer.customer_cart.splice(cartItemIndex, 1);
+    //   }
+    // });
+
     matchingItems.forEach((matchingItem) => {
-      const cartItemIndex = customer.customer_cart.findIndex(
-        (item) =>
-          item.product_id.toString() === matchingItem.product_id.toString() &&
-          item.variants_id.toString() === matchingItem.variants_id.toString()
-      );
+      const cartItemIndex = customer.customer_cart.findIndex((item) => {
+        const productMatch =
+          item.product_id.toString() === matchingItem.product_id.toString();
+        const variantMatch =
+          !variantId ||
+          (item.variants_id &&
+            item.variants_id.toString() ===
+              matchingItem.variants_id.toString());
+        return productMatch && variantMatch;
+      });
 
       if (cartItemIndex !== -1) {
         customer.customer_cart.splice(cartItemIndex, 1);
