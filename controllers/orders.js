@@ -168,7 +168,7 @@ export const updateOrder = async (req, res, next) => {
       }
 
       // Gửi thông báo SSE đến trình duyệt của khách hàng
-      sendOrderUpdateToCustomer(updatedOrder.customer_id, updatedOrder);
+      // sendOrderUpdateToCustomer(updatedOrder.customer_id, updatedOrder);
     }
 
     res.status(200).send(updatedOrder);
