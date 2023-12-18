@@ -14,13 +14,13 @@ export const getCustomers = (req, res, next) => {
       .sort({ lastName: 1 })
       .then((result) => {
         const formattedResult = result.map((customer) => {
-          const formattedCreatedAt = moment(customer.createdAt).format(
+          const formattedCreatedAt = moment(customer?.createdAt).format(
             "YYYY/MM/DD HH:mm:ss"
           );
-          const formattedUpdatedAt = moment(customer.updatedAt).format(
+          const formattedUpdatedAt = moment(customer?.updatedAt).format(
             "YYYY/MM/DD HH:mm:ss"
           );
-          const formattedBirthDay = moment(customer.birth_day).format(
+          const formattedBirthDay = moment(customer?.birth_day).format(
             "YYYY/MM/DD HH:mm:ss"
           );
           return {
@@ -49,13 +49,13 @@ export const getByIdCustomer = (req, res, next) => {
       .populate("customer_cart.product")
       .populate("customer_cart.variants")
       .then((result) => {
-        const formattedCreatedAt = moment(result.createdAt).format(
+        const formattedCreatedAt = moment(result?.createdAt).format(
           "YYYY/MM/DD HH:mm:ss"
         );
-        const formattedUpdatedAt = moment(result.updatedAt).format(
+        const formattedUpdatedAt = moment(result?.updatedAt).format(
           "YYYY/MM/DD HH:mm:ss"
         );
-        const formattedBirthDay = moment(result.birth_day).format(
+        const formattedBirthDay = moment(result?.birth_day).format(
           "YYYY/MM/DD HH:mm:ss"
         );
         res.status(200).send({
@@ -506,7 +506,7 @@ export const loginGoogleSuccess = (req, res) => {
   res.header("Access-Control-Allow-Origin", "http://localhost:3000");
   res.header("Access-Control-Allow-Credentials", true);
 
-  if (req.user.unique === true) {
+  if (req?.user?.unique === true) {
     res.status(404).send({
       unique: true,
       msg: "Email đã tồn tại, có thể bạn đã quên mật khẩu!",

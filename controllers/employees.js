@@ -10,13 +10,13 @@ export const getEmployees = (req, res, next) => {
       .sort({ lastName: 1 })
       .then((result) => {
         const formattedResult = result.map((employee) => {
-          const formattedCreatedAt = moment(employee.createdAt).format(
+          const formattedCreatedAt = moment(employee?.createdAt).format(
             "YYYY/MM/DD HH:mm:ss"
           );
-          const formattedUpdatedAt = moment(employee.updatedAt).format(
+          const formattedUpdatedAt = moment(employee?.updatedAt).format(
             "YYYY/MM/DD HH:mm:ss"
           );
-          const formattedBirthDay = moment(employee.birth_day).format(
+          const formattedBirthDay = moment(employee?.birth_day).format(
             "YYYY/MM/DD HH:mm:ss"
           );
           return {
@@ -42,13 +42,13 @@ export const getByIdEmployee = (req, res, next) => {
   try {
     const { id } = req.params;
     Employee.findById(id).then((result) => {
-      const formattedCreatedAt = moment(result.createdAt).format(
+      const formattedCreatedAt = moment(result?.createdAt).format(
         "YYYY/MM/DD HH:mm:ss"
       );
-      const formattedUpdatedAt = moment(result.updatedAt).format(
+      const formattedUpdatedAt = moment(result?.updatedAt).format(
         "YYYY/MM/DD HH:mm:ss"
       );
-      const formattedBirthDay = moment(result.birth_day).format(
+      const formattedBirthDay = moment(result?.birth_day).format(
         "YYYY/MM/DD HH:mm:ss"
       );
       res.status(200).send({
