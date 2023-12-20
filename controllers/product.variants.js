@@ -110,6 +110,8 @@ export const updateVariant = (req, res, next) => {
 export const updateProductVariant = async (req, res) => {
   const generatedVariants = req.body.generatedVariants;
   const product_id = req.body.product_id;
+  const newVariantIds = []; // Mảng để lưu _id của biến thể mới
+  const existingVariantIds = []; // Mảng để lưu _id của biến thể cũ
   try {
     for (const generatedVariant of generatedVariants) {
       const existingVariant = await ProductVariant.findOne({
@@ -123,12 +125,53 @@ export const updateProductVariant = async (req, res) => {
           // existingVariant.price = generatedVariant.price;
           await existingVariant.save();
         }
+        existingVariantIds.push(existingVariant._id); // Lưu _id của biến thể cũ
       } else {
         // Biến thể không tồn tại trong cơ sở dữ liệu, thêm mới
         const newVariant = new ProductVariant(generatedVariant);
         await newVariant.save();
+        newVariantIds.push(newVariant._id); // Lưu _id của biến thể mới
       }
     }
+    // Lấy danh sách variantIds hiện tại từ collection product
+    const currentProduct = await Product.findOne({ _id: product_id });
+    const currentVariantIds = currentProduct.variants;
+
+    // Lưu lại các _id của biến thể cũ không bị xóa
+    const retainedVariantIds = existingVariantIds.filter((id) =>
+      currentVariantIds.includes(id.toString())
+    );
+
+    // Xóa các biến thể không nằm trong danh sách generatedVariants
+    const variantsToDelete = await ProductVariant.find({
+      product_id: product_id,
+      title: { $nin: generatedVariants.map((v) => v.title) },
+    });
+
+    for (const variantToDelete of variantsToDelete) {
+      await variantToDelete.deleteOne(); // hoặc sử dụng remove() nếu muốn
+    }
+
+    // Loại bỏ các variantIds không tồn tại trong danh sách generatedVariants
+    const updatedVariantIds = currentVariantIds.filter((id) =>
+      generatedVariants.some(
+        (v) =>
+          (v._id && v._id.toString() === id.toString()) ||
+          (!v._id && v.title === id)
+      )
+    );
+
+    // Thêm các _id của biến thể mới vào danh sách cần cập nhật
+    updatedVariantIds.push(...newVariantIds);
+
+    // Thêm lại các _id của biến thể cũ không bị xóa vào danh sách cần cập nhật
+    updatedVariantIds.push(...retainedVariantIds);
+
+    // Cập nhật lại mảng variantIds trong collection product
+    await Product.updateOne(
+      { _id: product_id },
+      { $set: { variants: updatedVariantIds } }
+    );
 
     res.status(200).json({ message: "Cập nhật thành công" });
   } catch (error) {
