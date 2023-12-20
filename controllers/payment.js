@@ -22,7 +22,7 @@ export const PaymentVNPay = (req, res, next) => {
   var createDate = dateFormat(date, "yyyymmddHHMMss");
   var orderId = dateFormat(date, "HHMMss");
   var amount = req.body.amount;
-  var bankCode = req.body.bankCode;
+  // var bankCode = req.body.bankCode;
   var orderInfo = req.body.orderDescription;
   var orderType = req.body.orderType;
   var locale = req.body.language;
@@ -44,9 +44,9 @@ export const PaymentVNPay = (req, res, next) => {
   vnp_Params["vnp_ReturnUrl"] = returnUrl;
   vnp_Params["vnp_IpAddr"] = ipAddr;
   vnp_Params["vnp_CreateDate"] = createDate;
-  if (bankCode !== null && bankCode !== "") {
-    vnp_Params["vnp_BankCode"] = bankCode;
-  }
+  // if (bankCode !== null && bankCode !== "") {
+  //   vnp_Params["vnp_BankCode"] = bankCode;
+  // }
   function sortObject(obj) {
     var sorted = {};
     var str = [];
