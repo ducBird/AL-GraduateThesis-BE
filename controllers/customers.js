@@ -532,23 +532,23 @@ export const loginGoogleFailure = (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.header("Access-Control-Allow-Origin", "http://127.0.0.1:3000");
-    res.header("Access-Control-Allow-Credentials", true);
+    // res.header("Access-Control-Allow-Origin", "http://127.0.0.1:3000");
+    // res.header("Access-Control-Allow-Credentials", true);
     // cần phải đặt tham số path và domain khi gọi hàm res.clearCookie để xóa cookie trên cả client và server. Bạn cũng cần phải bao gồm credentials ở phía frontend, nếu không thì không có cookie nào được gửi với yêu cầu. Nếu không có cookie nào đến server, nó sẽ không có gì để xóa.
     // với code còn đang development ở local thì không cần có tham số truyền vào là domain
-    // res.clearCookie("refreshtoken", {
-    //   path: "/",
-    //   domain: "localhost",
-    // });
-    // res.clearCookie("session_google_account", {
-    //   path: "/",
-    //   domain: "localhost",
-    //   httpOnly: true,
-    // });
-    res.clearCookie("refreshtoken");
-    res.clearCookie("session_google_account");
-    res.json({ msg: "Đã đăng xuất." });
-    // res.redirect("http://localhost:3000");
+    res.clearCookie("refreshtoken", {
+      path: "/",
+      domain: "localhost",
+    });
+    res.clearCookie("session_google_account", {
+      path: "/",
+      domain: "localhost",
+      httpOnly: true,
+    });
+    // res.clearCookie("refreshtoken");
+    // res.clearCookie("session_google_account");
+    // res.json({ msg: "Đã đăng xuất." });
+    res.redirect("http://127.0.0.1:3000");
   } catch (err) {
     return res.status(500).json({ msg: err.message });
   }
